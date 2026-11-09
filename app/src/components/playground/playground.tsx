@@ -52,12 +52,15 @@ function jsOf(assertion: string, resource: string) {
   return `const r = await fetch("${TOKEN_URL}", {\n  method: "POST",\n  body: new URLSearchParams({\n    grant_type: "${GRANT}",\n    assertion: "${assertion}",\n${resource ? `    resource: "${resource}",\n` : ""}  }),\n});\nconsole.log(r.status, await r.json());`;
 }
 
+// Code boxes wrap at every width: the content is mostly one very long assertion, which is unreadable when it scrolls sideways.
+const CODE_BOX = "min-w-0 rounded-md border bg-muted/30 [&_pre]:whitespace-pre-wrap [&_pre]:break-all [&_code]:break-all";
+
 function Wired({ wire, extra }: { wire?: Wire; extra?: Record<string, string> }) {
   if (!wire) return <p className="text-muted-foreground text-sm">Nothing sent yet.</p>;
   return (
     <div className="space-y-3">
-      <Section title="Request" action={<CopyButton text={wire.request} />}><div className="rounded-md border bg-muted/30"><CodeBlock code={wire.request} language="http" /></div></Section>
-      <Section title={`Response · ${wire.status} · ${wire.ms} ms`} action={<CopyButton text={wire.response} />}><div className="rounded-md border bg-muted/30"><CodeBlock code={wire.response} language="http" /></div></Section>
+      <Section title="Request" action={<CopyButton text={wire.request} />}><div className={CODE_BOX}><CodeBlock code={wire.request} language="http" /></div></Section>
+      <Section title={`Response · ${wire.status} · ${wire.ms} ms`} action={<CopyButton text={wire.response} />}><div className={CODE_BOX}><CodeBlock code={wire.response} language="http" /></div></Section>
       {extra && Object.entries(extra).map(([k, v]) => <p key={k} className="text-muted-foreground text-xs">{k}: {v}</p>)}
     </div>
   );
@@ -68,14 +71,14 @@ function StepShell({ n, title, actor, icon, state, last, summary, children }: {
 }) {
   const ring = { locked: "border-muted text-muted-foreground", active: "border-primary text-primary", done: "border-emerald-500 bg-emerald-500 text-white", error: "border-destructive bg-destructive text-white" }[state];
   return (
-    <div className="relative flex gap-4">
+    <div className="relative flex min-w-0 gap-3 sm:gap-4">
       <div className="flex flex-col items-center">
-        <div className={cn("grid size-9 shrink-0 place-items-center rounded-full border-2 font-semibold text-sm", ring, state === "active" && "animate-pulse")}>
+        <div className={cn("grid size-8 shrink-0 place-items-center sm:size-9 rounded-full border-2 font-semibold text-sm", ring, state === "active" && "animate-pulse")}>
           {state === "done" ? <CheckCircle2Icon className="size-5" /> : state === "error" ? <XCircleIcon className="size-5" /> : state === "locked" ? <LockIcon className="size-4" /> : n}
         </div>
         {!last && <div className={cn("my-1 w-0.5 flex-1", state === "done" ? "bg-emerald-500" : "bg-border")} />}
       </div>
-      <Card className={cn("mb-6 flex-1 transition-all", state === "locked" && "opacity-60", state === "active" && "border-primary shadow-md ring-1 ring-primary/30", state === "error" && "border-destructive/60")}>
+      <Card className={cn("mb-6 min-w-0 flex-1 transition-all", state === "locked" && "opacity-60", state === "active" && "border-primary shadow-md ring-1 ring-primary/30", state === "error" && "border-destructive/60")}>
         <CardHeader>
           <div className="flex flex-wrap items-center gap-2">
             <CardTitle className="font-mono text-base tracking-tight">{title}</CardTitle>
@@ -244,18 +247,18 @@ export function Playground() {
   const nextHint = !signed ? "Sign the grant" : !tokenRes ? "Send the token request" : "Pick another scenario";
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-3 py-6 sm:px-4 sm:py-8">
+      <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
-          <h1 className="font-mono font-semibold text-3xl tracking-tight">Run a Workload Authorization Grant</h1>
+          <h1 className="font-mono font-semibold text-2xl tracking-tight sm:text-3xl">Run a Workload Authorization Grant</h1>
           <p className="max-w-2xl text-muted-foreground text-sm">Sign a grant as the Workload Identity Provider, break it in any way you like, and watch a real authorization server check it rule by rule.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ThemeToggle />
           <Tooltip><TooltipTrigger render={<Badge variant={offline ? "destructive" : "secondary"} className="gap-1.5"><span className={cn("size-2 rounded-full", offline ? "bg-destructive" : "bg-emerald-500")} />{offline ? "AS offline" : "AS online"}</Badge>} /><TooltipContent>{offline ?? "The authorization server is reachable"}</TooltipContent></Tooltip>
           <Sheet>
             <SheetTrigger render={<Button variant="outline" size="sm" onClick={() => void refreshCfg()}><SlidersHorizontalIcon />Modes</Button>} />
-            <SheetContent className="w-[420px] sm:max-w-[420px]">
+            <SheetContent className="w-full max-w-full sm:w-[420px] sm:max-w-[420px]">
               <SheetHeader><SheetTitle>Behaviour modes</SheetTitle><SheetDescription>The draft leaves these open. They are assumptions, not spec, and apply to the live auth server.</SheetDescription></SheetHeader>
               <div className="space-y-5 px-4">
                 {cfg?.info.map((m) => (
@@ -269,7 +272,7 @@ export function Playground() {
           </Sheet>
           <Sheet onOpenChange={(o) => o && void refreshLog()}>
             <SheetTrigger render={<Button variant="outline" size="sm"><ActivityIcon />Server log{log.length > 0 && <Badge variant="secondary">{log.length}</Badge>}</Button>} />
-            <SheetContent className="w-[640px] sm:max-w-[640px]">
+            <SheetContent className="w-full max-w-full sm:w-[640px] sm:max-w-[640px]">
               <SheetHeader><SheetTitle>What the auth server logged</SheetTitle><SheetDescription>Recorded inside the auth server process, independent of this app.</SheetDescription></SheetHeader>
               <ScrollArea className="h-[calc(100vh-8rem)] px-4">
                 <div className="space-y-2 pb-6">
@@ -297,20 +300,20 @@ export function Playground() {
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="space-y-1 pt-4 text-sm">
           <p className="font-mono"><b>The scenario.</b> You are the <b>Platform</b>. You host an Agent called <code>agent/7f3d9as3</code>. A ticket tracker&apos;s authorization server trusts your Workload Identity Provider, but has never heard of this Agent, and nobody registered it. Can the Agent get a token?</p>
-          <p className="text-muted-foreground">Pick a scenario on the left, or edit the grant yourself. <kbd className="rounded border px-1">⌘</kbd>+<kbd className="rounded border px-1">Enter</kbd> runs the next step.</p>
+          <p className="text-muted-foreground">Pick a scenario, or edit the grant yourself.<span className="hidden sm:inline"> <kbd className="rounded border px-1">⌘</kbd>+<kbd className="rounded border px-1">Enter</kbd> runs the next step.</span></p>
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start">
           <div className="flex items-center justify-between">
             <h2 className="font-medium font-mono text-sm">scenarios</h2>
             <Button size="xs" onClick={() => void runAll()} disabled={!!busy || !!offline}><ZapIcon />Run all</Button>
           </div>
-          <div className="space-y-1.5">
+          <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 lg:mx-0 lg:block lg:space-y-1.5 lg:overflow-visible lg:px-0 lg:pb-0">
             {SCENARIOS.map((s) => (
               <button key={s.id} type="button" onClick={() => applyScenario(s)} disabled={!!busy}
-                className={cn("w-full rounded-lg border p-3 text-left transition-colors hover:bg-accent disabled:opacity-60", s.id === scenarioId && "border-primary bg-primary/5 ring-1 ring-primary/30")}>
+                className={cn("w-auto shrink-0 rounded-lg border p-2.5 text-left transition-colors hover:bg-accent disabled:opacity-60 lg:w-full lg:shrink lg:p-3", s.id === scenarioId && "border-primary bg-primary/5 ring-1 ring-primary/30")}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium font-mono text-sm">{s.title}</span>
                   <span className="flex items-center gap-1.5">
@@ -320,14 +323,15 @@ export function Playground() {
                     <Badge variant={s.expect === "accept" ? "secondary" : "outline"}>{s.expect === "accept" ? "accepts" : "rejects"}</Badge>
                   </span>
                 </div>
-                {s.id === scenarioId && <p className="mt-1.5 text-muted-foreground text-xs">{s.blurb}</p>}
+                {s.id === scenarioId && <p className="mt-1.5 hidden text-muted-foreground text-xs lg:block">{s.blurb}</p>}
               </button>
             ))}
           </div>
+          <p className="text-muted-foreground text-xs lg:hidden">{scenario.blurb}</p>
           <Button variant="secondary" size="sm" className="w-full" disabled={!!busy || !!offline} onClick={() => void runScenario(scenario)}><PlayIcon />Run &ldquo;{scenario.title}&rdquo; automatically</Button>
         </aside>
 
-        <main>
+        <main className="min-w-0">
           <StepShell n={1} title="Sign the grant" actor="Workload Identity Provider" icon={<KeyRoundIcon className="size-3" />} state={step1} summary={signed ? "signed" : undefined}>
             <p className="text-muted-foreground text-sm">The Platform&apos;s Workload Identity Provider signs a JWT naming one Agent. Edit anything, or tamper with it to see how the server reacts.</p>
             <div className="grid gap-4 md:grid-cols-2">
@@ -355,7 +359,7 @@ export function Playground() {
             <Button onClick={() => void doSign()} disabled={!!busy || !!claimsError} className="w-full">{busy === "sign" ? "Signing…" : signed ? "Sign again" : "Sign the grant"}<ShieldCheckIcon /></Button>
             {signed && (
               <Tabs defaultValue="token">
-                <TabsList><TabsTrigger value="token">Token</TabsTrigger><TabsTrigger value="wire">Request / Response</TabsTrigger></TabsList>
+                <TabsList className="max-w-full justify-start overflow-x-auto"><TabsTrigger value="token">Token</TabsTrigger><TabsTrigger value="wire">Request / Response</TabsTrigger></TabsList>
                 <TabsContent value="token" className="space-y-2 pt-2"><div className="flex justify-end"><CopyButton text={signed.assertion} label="Copy assertion" /></div><JwtView token={signed.assertion} /></TabsContent>
                 <TabsContent value="wire" className="pt-2"><Wired wire={signed.wire} /></TabsContent>
               </Tabs>
@@ -372,11 +376,11 @@ export function Playground() {
             {replayHit && <Alert><AlertTitle>First use</AlertTitle><AlertDescription>First presentation: HTTP {replayHit.status}. The result below is the second presentation of the same assertion.</AlertDescription></Alert>}
             {tokenRes && signed && (
               <Tabs defaultValue="wire">
-                <TabsList><TabsTrigger value="wire">Request / Response</TabsTrigger><TabsTrigger value="curl">cURL</TabsTrigger><TabsTrigger value="js">JavaScript</TabsTrigger><TabsTrigger value="py">Python</TabsTrigger></TabsList>
+                <TabsList className="max-w-full justify-start overflow-x-auto"><TabsTrigger value="wire">Request / Response</TabsTrigger><TabsTrigger value="curl">cURL</TabsTrigger><TabsTrigger value="js">JavaScript</TabsTrigger><TabsTrigger value="py">Python</TabsTrigger></TabsList>
                 <TabsContent value="wire" className="pt-2"><Wired wire={tokenRes.wire} extra={tokenRes.note ? { "Auth server note": tokenRes.note } : undefined} /></TabsContent>
-                <TabsContent value="curl" className="pt-2"><div className="rounded-md border bg-muted/30"><CodeBlock code={curlOf(signed.assertion, resource, scope)} language="bash" /></div></TabsContent>
-                <TabsContent value="js" className="pt-2"><div className="rounded-md border bg-muted/30"><CodeBlock code={jsOf(signed.assertion, resource)} language="javascript" /></div></TabsContent>
-                <TabsContent value="py" className="pt-2"><div className="rounded-md border bg-muted/30"><CodeBlock code={pythonOf(signed.assertion, resource)} language="python" /></div></TabsContent>
+                <TabsContent value="curl" className="pt-2"><div className={CODE_BOX}><CodeBlock code={curlOf(signed.assertion, resource, scope)} language="bash" /></div></TabsContent>
+                <TabsContent value="js" className="pt-2"><div className={CODE_BOX}><CodeBlock code={jsOf(signed.assertion, resource)} language="javascript" /></div></TabsContent>
+                <TabsContent value="py" className="pt-2"><div className={CODE_BOX}><CodeBlock code={pythonOf(signed.assertion, resource)} language="python" /></div></TabsContent>
               </Tabs>
             )}
           </StepShell>

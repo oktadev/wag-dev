@@ -43,9 +43,9 @@ function Countdown({ exp }: { exp: number }) {
 
 function Claims({ obj }: { obj: Record<string, unknown> }) {
   return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+    <dl className="grid grid-cols-1 gap-x-3 gap-y-1 text-xs sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-y-1.5">
       {Object.entries(obj).map(([k, v]) => (
-        <div key={k} className="contents">
+        <div key={k} className="grid grid-cols-1 sm:contents">
           <dt className="text-muted-foreground" title={k}>{CLAIM_LABELS[k] ?? k} <span className="font-mono opacity-60">{k}</span></dt>
           <dd className="break-all font-mono">
             {typeof v === "string" ? v : JSON.stringify(v)}
@@ -68,7 +68,7 @@ export function JwtView({ token }: { token: string }) {
       <div className="rounded-md border bg-muted/30 p-3 font-mono text-xs break-all leading-relaxed">
         <span className="text-sky-600 dark:text-sky-400">{d.h}</span>.<span className="text-violet-600 dark:text-violet-400">{d.p}</span>.<span className="text-amber-600 dark:text-amber-400">{d.s || "(empty)"}</span>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-1.5 rounded-md border p-3"><p className="font-medium text-sky-600 dark:text-sky-400 text-xs">Header</p><Claims obj={d.header} /></div>
         <div className="space-y-1.5 rounded-md border p-3"><p className="font-medium text-violet-600 dark:text-violet-400 text-xs">Payload</p><Claims obj={d.payload} /></div>
       </div>
