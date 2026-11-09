@@ -12,13 +12,16 @@ const TIMEOUT_MS = 10_000;
  *  Credentials are added to `sent` only, after `shown` is built from the caller's headers. */
 const SHOWN = new Set(["content-type", "accept"]);
 
-type Opts = { internal?: boolean; sid: string };
+type Opts = { internal?: boolean; sid: string; ip?: string };
 
 /** One HTTP exchange with the auth server, recorded as raw HTTP text with credentials left out. */
 export async function exchange(method: string, path: string, headers: Record<string, string>, body: string | undefined, o: Opts) {
   const url = new URL(path, AS_URL);
   const sent: Record<string, string> = { ...headers, "x-wag-session": o.sid };
   if (o.internal && INTERNAL_TOKEN) sent.authorization = `Bearer ${INTERNAL_TOKEN}`;
+  // Tell the auth server which visitor this is, so its rate limits are per visitor and not per app instance.
+  // The proof header is what makes the auth server believe it; it is never shown in the browser-visible log.
+  if (o.ip && INTERNAL_TOKEN) { sent["x-wag-client-ip"] = o.ip; sent["x-wag-proxy-token"] = INTERNAL_TOKEN; }
   const shown = Object.fromEntries(Object.entries(sent).filter(([k]) => SHOWN.has(k.toLowerCase())));
   const t0 = Date.now();
   const r = await fetch(url, { method, headers: sent, body, cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) });
@@ -43,11 +46,11 @@ export async function fetchChecks(traceId: string | null, sid: string): Promise<
 }
 
 /** Wrap a route handler: resolve the visitor session, map failures to safe JSON, and set the cookie. */
-export function route(fn: (sid: string, req: Request) => Promise<Response>) {
+export function route(fn: (sid: string, req: Request, ip: string) => Promise<Response>) {
   return async (req: Request): Promise<Response> => {
     const { sid, fresh } = await sessionId();
     try {
-      return withSessionCookie(await fn(sid, req), sid, fresh);
+      return withSessionCookie(await fn(sid, req, clientIp(req)), sid, fresh);
     } catch (e) {
       const timeout = e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
       console.error(JSON.stringify({ level: "error", msg: "route failed", path: new URL(req.url).pathname, err: String((e as Error)?.message ?? e) }));
@@ -57,6 +60,14 @@ export function route(fn: (sid: string, req: Request) => Promise<Response>) {
       );
     }
   };
+}
+
+/** The visitor's address as seen by the platform. On Vercel x-forwarded-for is overwritten, so it cannot be spoofed;
+ *  anywhere else it is only a hint, which is fine: a wrong value only changes which rate-limit bucket the caller lands in. */
+export function clientIp(req: Request): string {
+  const raw = req.headers.get("x-vercel-forwarded-for") ?? req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "";
+  const first = raw.split(",")[0].trim();
+  return /^[0-9a-fA-F:.]{3,45}$/.test(first) ? first : "";
 }
 
 /** Reject cross-site form posts. Same-origin fetches from our own UI always send Origin. */

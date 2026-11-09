@@ -16,7 +16,7 @@ test("production refuses to start without secrets, and lists every problem", () 
 });
 
 test("production requires an https issuer without a path", () => {
-  const base = { NODE_ENV: "production", INTERNAL_TOKEN: "x".repeat(32), REDIS_URL: "redis://x", WIDP_PRIVATE_JWK: "{}", PROVIDER_JWKS: "{}", COOKIE_KEYS: "k" };
+  const base = { NODE_ENV: "production", INTERNAL_TOKEN: "x".repeat(32), REDIS_URL: "rediss://x", WIDP_PRIVATE_JWK: "{}", PROVIDER_JWKS: "{}", COOKIE_KEYS: "k" };
   assert.throws(() => loadConfig({ ...base, ISSUER: "http://as.example" }), /https/);
   assert.throws(() => loadConfig({ ...base, ISSUER: "https://as.example/tenant" }), /path/);
   assert.equal(loadConfig({ ...base, ISSUER: "https://as.example" }).issuer, "https://as.example");
@@ -24,4 +24,20 @@ test("production requires an https issuer without a path", () => {
 
 test("short internal token is rejected in production", () => {
   assert.throws(() => loadConfig({ NODE_ENV: "production", ISSUER: "https://a.example", INTERNAL_TOKEN: "short" }), /INTERNAL_TOKEN/);
+});
+
+test("production refuses a plaintext Redis URL unless explicitly allowed", () => {
+  const base = { NODE_ENV: "production", ISSUER: "https://as.example", INTERNAL_TOKEN: "x".repeat(32), WIDP_PRIVATE_JWK: "{}", PROVIDER_JWKS: "{}", COOKIE_KEYS: "k" };
+  assert.throws(() => loadConfig({ ...base, REDIS_URL: "redis://user:pw@host:6379" }), /rediss:\/\/ \(TLS\)/);
+  assert.equal(loadConfig({ ...base, REDIS_URL: "rediss://user:pw@host:6379" }).redisUrl, "rediss://user:pw@host:6379");
+  assert.equal(loadConfig({ ...base, REDIS_URL: "redis://host:6379", ALLOW_INSECURE_REDIS: "1" }).redisUrl, "redis://host:6379");
+});
+
+test("the error never echoes the Redis password", () => {
+  const base = { NODE_ENV: "production", ISSUER: "https://as.example", INTERNAL_TOKEN: "x".repeat(32), WIDP_PRIVATE_JWK: "{}", PROVIDER_JWKS: "{}", COOKIE_KEYS: "k" };
+  assert.throws(() => loadConfig({ ...base, REDIS_URL: "redis://user:hunter2@host:6379" }), (e) => !/hunter2/.test(e.message));
+});
+
+test("development accepts plaintext Redis", () => {
+  assert.equal(loadConfig({ REDIS_URL: "redis://localhost:6379" }).redisUrl, "redis://localhost:6379");
 });

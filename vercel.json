@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": "app/",
+      "framework": "nextjs",
+      "bindings": [
+        { "type": "service", "service": "auth-server", "format": "url", "env": "AS_URL" }
+      ]
+    },
+    "auth-server": {
+      "root": "auth-server/",
+      "runtime": "container",
+      "entrypoint": "Dockerfile"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": { "service": "app" } }
+  ]
+}

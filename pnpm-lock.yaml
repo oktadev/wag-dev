@@ -96,8 +96,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0
       jose:
-        specifier: 6.2.16
-        version: 6.2.16
+        specifier: 6.2.15
+        version: 6.2.15
       oidc-provider:
         specifier: 9.13.3
         version: 9.13.3
@@ -2152,8 +2152,8 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
-  jose@6.2.16:
-    resolution: {integrity: sha512-4LSJpbuBuPdGrONCdZUy0xnxtLf8eEz+EY0SMXdHQEBU7bgUHDVblU/JAjryv3wID9/LK7/YuwFwq+AQNfMscQ==}
+  jose@6.2.15:
+    resolution: {integrity: sha512-qdF6ewcZARtef63fJ9AKKZPgxw+t7USH6HLXYcD4CrdmSvDp79rpJSPFEKc90QBeGS63u1KQtN2MZQHC0yDIzA==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -5429,7 +5429,7 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  jose@6.2.16: {}
+  jose@6.2.15: {}
 
   js-tokens@4.0.0: {}
 
@@ -5776,7 +5776,7 @@ snapshots:
   oidc-provider@9.13.3:
     dependencies:
       debug: 4.4.3
-      jose: 6.2.16
+      jose: 6.2.15
       koa: 3.3.0
     transitivePeerDependencies:
       - supports-color

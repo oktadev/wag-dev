@@ -27,6 +27,14 @@ export function loadConfig(env = process.env) {
   const allowMemoryStore = truthy(env.ALLOW_MEMORY_STORE);
   if (production && !redisUrl && !allowMemoryStore) errors.push("REDIS_URL is required in production (set ALLOW_MEMORY_STORE=1 only for a single-instance demo)");
 
+  if (production && redisUrl && !allowMemoryStore) {
+    let proto = "";
+    try { proto = new URL(redisUrl).protocol; } catch { errors.push("REDIS_URL is not a valid URL"); }
+    if (proto && proto !== "rediss:" && !truthy(env.ALLOW_INSECURE_REDIS)) {
+      errors.push("REDIS_URL must use rediss:// (TLS) in production: the connection carries the password and stored access tokens (set ALLOW_INSECURE_REDIS=1 only for a private network you trust)");
+    }
+  }
+
   const parseJson = (name, required) => {
     const raw = env[name];
     if (!raw) { if (production && required) errors.push(`${name} is required in production (run: pnpm --filter @wag/auth-server keys)`); return undefined; }
@@ -47,6 +55,8 @@ export function loadConfig(env = process.env) {
     widpPrivateJwk, providerJwks, cookieKeys,
     trustProxy: truthy(env.TRUST_PROXY),
     rateLimitPerMin: int(env.RATE_LIMIT_PER_MIN, 120),
+    heavyPerMin: int(env.HEAVY_RATE_LIMIT_PER_MIN, 30), // /token and /idp/sign, per client IP
+    dailyBudget: int(env.DAILY_BUDGET, 5000), // /token + /idp/sign across ALL visitors per UTC day
     maxBodyBytes: int(env.MAX_BODY_BYTES, 16 * 1024),
     requestTimeoutMs: int(env.REQUEST_TIMEOUT_MS, 15000),
     logLevel: env.LOG_LEVEL ?? "info",

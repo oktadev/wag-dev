@@ -26,7 +26,7 @@ const SignBody = z.object({
 }).strict();
 const ConfigBody = z.object({ rejectReplay: z.boolean(), acceptTokenEndpointAud: z.boolean(), requireResource: z.boolean() }).partial().strict();
 
-class HttpError extends Error { constructor(status, code, message) { super(message); this.status = status; this.code = code; } }
+class HttpError extends Error { constructor(status, code, message, headers = {}) { super(message); this.status = status; this.code = code; this.headers = headers; } }
 const secs = (s) => { const m = /^(-?\d+)([smhd])$/.exec(s); return Number(m[1]) * { s: 1, m: 60, h: 3600, d: 86400 }[m[2]]; };
 const same = (a, b) => { const x = Buffer.from(a), y = Buffer.from(b); return x.length === y.length && timingSafeEqual(x, y); };
 const clip = (t, n = 6000) => (t.length > n ? `${t.slice(0, n)}…[truncated]` : t);
@@ -149,10 +149,25 @@ export async function createApp({ config, store, keys }) {
   async function allocId(sid) { return store.incr(`seq:${sid}`, SESSION_TTL); }
   const provCb = provider.callback();
 
-  async function rateLimit(req) {
-    const ip = (config.trustProxy ? String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim() : "") || req.socket.remoteAddress || "unknown";
-    const n = await store.incr(`rl:${ip}:${Math.floor(Date.now() / 60000)}`, 120);
-    if (n > config.rateLimitPerMin) throw new HttpError(429, "rate_limited", "too many requests");
+  const IP_RE = /^[0-9a-fA-F:.]{3,45}$/;
+  /** The visitor's address. Behind the app the socket peer is always the app, so the app forwards the real one;
+   *  that header is believed ONLY when it arrives with the shared secret. Anyone else cannot choose their bucket. */
+  function callerIp(req) {
+    const fwd = req.headers["x-wag-client-ip"], proof = req.headers["x-wag-proxy-token"];
+    if (config.internalToken && typeof proof === "string" && same(proof, config.internalToken) && typeof fwd === "string" && IP_RE.test(fwd)) return fwd;
+    if (config.trustProxy) { const x = String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim(); if (IP_RE.test(x)) return x; }
+    return req.socket.remoteAddress || "unknown";
+  }
+  /** Per-IP limits (light for everything, tighter for the endpoints that sign/issue) plus one global daily budget
+   *  that bounds total work and Redis growth no matter how many addresses an abuser has. */
+  async function rateLimit(req, heavy) {
+    const ip = callerIp(req), minute = Math.floor(Date.now() / 60000);
+    const n = await store.incr(`rl:${heavy ? "h" : "l"}:${ip}:${minute}`, 120);
+    if (n > (heavy ? config.heavyPerMin : config.rateLimitPerMin)) throw new HttpError(429, "rate_limited", "too many requests, slow down", { "retry-after": "30" });
+    if (heavy) {
+      const day = new Date().toISOString().slice(0, 10);
+      if ((await store.incr(`budget:${day}`, 90000)) > config.dailyBudget) throw new HttpError(429, "budget_exhausted", "the demo's daily request budget is used up; try again tomorrow", { "retry-after": "3600" });
+    }
   }
 
   const server = http.createServer(async (req, res) => {
@@ -167,7 +182,7 @@ export async function createApp({ config, store, keys }) {
         const ok = await store.ping().catch(() => false);
         return send(res, ok ? 200 : 503, { ok, store: store.kind });
       }
-      await rateLimit(req);
+      await rateLimit(req, req.method === "POST" && (path === "/token" || path === "/idp/sign"));
 
       if (path === "/.well-known/oauth-authorization-server" || path === "/.well-known/openid-configuration") return send(res, 200, metadata);
 
@@ -216,7 +231,7 @@ export async function createApp({ config, store, keys }) {
     } catch (e) {
       const known = e instanceof HttpError;
       if (!known) log("error", "unhandled", { path, err: String(e?.message ?? e) });
-      if (!res.headersSent) send(res, known ? e.status : 500, { error: known ? e.code : "server_error", error_description: known ? e.message : "internal error" });
+      if (!res.headersSent) send(res, known ? e.status : 500, { error: known ? e.code : "server_error", error_description: known ? e.message : "internal error" }, known ? e.headers : {});
     } finally {
       res.on("close", () => log("info", "req", { method: req.method, path, status, ms: Date.now() - started, sid }));
     }

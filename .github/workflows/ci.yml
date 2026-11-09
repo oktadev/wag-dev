@@ -24,6 +24,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Nested auth-server lockfile matches the root lockfile
+        run: python3 -I scripts/check-lockfiles.py
       - name: Auth server tests (memory and Redis)
         run: pnpm --filter @wag/auth-server test
         env:
@@ -42,5 +44,6 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-      - run: docker build --target auth-server -t wag-auth-server .
-      - run: docker build --target app -t wag-app .
+      - run: docker build -f Dockerfile.local --target auth-server -t wag-auth-server .
+      - run: docker build -f Dockerfile.local --target app -t wag-app .
+      - run: docker build -t wag-auth-server-standalone auth-server

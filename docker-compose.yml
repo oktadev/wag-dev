@@ -12,6 +12,7 @@ services:
   auth-server:
     build:
       context: .
+      dockerfile: Dockerfile.local
       target: auth-server
     environment:
       NODE_ENV: development             # local stack only: throwaway keys, http issuer. Deploys keep the production guard.
@@ -28,6 +29,7 @@ services:
   app:
     build:
       context: .
+      dockerfile: Dockerfile.local
       target: app
     environment:
       AS_URL: http://auth-server:4100

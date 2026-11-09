@@ -120,3 +120,27 @@ describe("the browser-visible wire log", () => {
     expect(out.wire.request).not.toMatch(/authorization|bearer|secret-internal-token|x-wag-session/i);
   });
 });
+
+describe("client IP forwarding", () => {
+  const ipOf = (c: Call) => hdr(c)["x-wag-client-ip"];
+  it("forwards the platform-reported visitor IP with proof, to the signing endpoint", async () => {
+    reply = () => Response.json({ assertion: "a.b.c" });
+    const { POST } = await import("@/app/api/sign/route");
+    await POST(post("/api/sign", {}, { "x-forwarded-for": "198.51.100.7, 10.0.0.1" }));
+    expect(ipOf(calls[0])).toBe("198.51.100.7");
+    expect(hdr(calls[0])["x-wag-proxy-token"]).toBe("secret-internal-token");
+  });
+  it("does not forward a malformed address", async () => {
+    reply = () => Response.json({ assertion: "a.b.c" });
+    const { POST } = await import("@/app/api/sign/route");
+    await POST(post("/api/sign", {}, { "x-forwarded-for": "not an ip; x-evil: 1" }));
+    expect(ipOf(calls[0])).toBeUndefined();
+  });
+  it("forwards it on the token request too, and never exposes it in the wire log", async () => {
+    reply = (url) => url.endsWith("/token") ? Response.json({ access_token: "t" }, { headers: { "x-wag-trace": "1" } }) : Response.json({ checks: [] });
+    const { POST } = await import("@/app/api/token/route");
+    const out = await (await POST(post("/api/token", { grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: "a.b.c" }, { "x-forwarded-for": "203.0.113.9" }))).json();
+    expect(ipOf(calls.find((c) => c.url.endsWith("/token"))!)).toBe("203.0.113.9");
+    expect(out.wire.request).not.toMatch(/203\.0\.113\.9|x-wag-proxy-token|secret-internal-token/);
+  });
+});

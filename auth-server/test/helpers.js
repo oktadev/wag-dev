@@ -6,7 +6,7 @@ import { createMemoryStore, createRedisStore } from "../src/store.js";
 export const GRANT = "urn:ietf:params:oauth:grant-type:jwt-bearer";
 
 export async function boot(env = {}) {
-  const config = loadConfig({ PORT: "0", ISSUER: "http://as.test", LOG_LEVEL: "error", ...env });
+  const config = loadConfig({ PORT: "0", ISSUER: "http://as.test", LOG_LEVEL: "error", HEAVY_RATE_LIMIT_PER_MIN: "10000", RATE_LIMIT_PER_MIN: "10000", DAILY_BUDGET: "1000000", ...env });
   const store = config.redisUrl ? createRedisStore(config.redisUrl) : createMemoryStore();
   const app = await createApp({ config, store, keys: await loadKeys(config) });
   await new Promise((r) => app.server.listen(0, "127.0.0.1", r));
