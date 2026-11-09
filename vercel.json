@@ -5,7 +5,12 @@
       "root": "app/",
       "framework": "nextjs",
       "bindings": [
-        { "type": "service", "service": "auth-server", "format": "url", "env": "AS_URL" }
+        {
+          "type": "service",
+          "service": "auth-server",
+          "format": "url",
+          "env": "AS_URL"
+        }
       ]
     },
     "auth-server": {
@@ -15,6 +20,29 @@
     }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": { "service": "app" } }
+    {
+      "source": "/token",
+      "destination": {
+        "service": "auth-server"
+      }
+    },
+    {
+      "source": "/jwks",
+      "destination": {
+        "service": "auth-server"
+      }
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server",
+      "destination": {
+        "service": "auth-server"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
   ]
 }

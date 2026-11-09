@@ -1,6 +1,6 @@
 // The HTTP surface. Only the routes listed here are reachable; everything else is a 404 before it can touch the provider.
 import http from "node:http";
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { SignJWT, createLocalJWKSet } from "jose";
 import Provider, { errors } from "oidc-provider";
 import * as grants from "oidc-provider/lib/helpers/grants.js";
@@ -158,6 +158,8 @@ export async function createApp({ config, store, keys }) {
     if (config.trustProxy) { const x = String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim(); if (IP_RE.test(x)) return x; }
     return req.socket.remoteAddress || "unknown";
   }
+  /** A short one-way tag of the caller address, so abuse can be told apart in logs without storing raw IPs. */
+  const ipTag = (req) => createHash("sha256").update(callerIp(req)).digest("hex").slice(0, 8);
   /** Per-IP limits (light for everything, tighter for the endpoints that sign/issue) plus one global daily budget
    *  that bounds total work and Redis growth no matter how many addresses an abuser has. */
   async function rateLimit(req, heavy) {
@@ -233,7 +235,7 @@ export async function createApp({ config, store, keys }) {
       if (!known) log("error", "unhandled", { path, err: String(e?.message ?? e) });
       if (!res.headersSent) send(res, known ? e.status : 500, { error: known ? e.code : "server_error", error_description: known ? e.message : "internal error" }, known ? e.headers : {});
     } finally {
-      res.on("close", () => log("info", "req", { method: req.method, path, status, ms: Date.now() - started, sid }));
+      res.on("close", () => log("info", "req", { method: req.method, path, status, ms: Date.now() - started, sid, ip: ipTag(req) }));
     }
   });
   server.requestTimeout = config.requestTimeoutMs;
