@@ -1,0 +1,477 @@
+{
+ "source": "../SOURCE.md",
+ "nodes": [
+  {
+   "id": "wag",
+   "type": "artifact",
+   "label": "Workload Authorization Grant"
+  },
+  {
+   "id": "platform",
+   "type": "role",
+   "label": "Platform"
+  },
+  {
+   "id": "widp",
+   "type": "role",
+   "label": "Workload Identity Provider"
+  },
+  {
+   "id": "agent",
+   "type": "role",
+   "label": "Agent (workload)"
+  },
+  {
+   "id": "as",
+   "type": "role",
+   "label": "Authorization Server"
+  },
+  {
+   "id": "rs",
+   "type": "role",
+   "label": "Resource Server"
+  },
+  {
+   "id": "widp_reg",
+   "type": "concept",
+   "label": "WIdP registration"
+  },
+  {
+   "id": "agent_id",
+   "type": "concept",
+   "label": "Agent Identifier (sub)"
+  },
+  {
+   "id": "access_token",
+   "type": "artifact",
+   "label": "Access token"
+  },
+  {
+   "id": "token_request",
+   "type": "concept",
+   "label": "Token request (jwt-bearer)"
+  },
+  {
+   "id": "jwt_claims",
+   "type": "concept",
+   "label": "WAG JWT claims"
+  },
+  {
+   "id": "typ",
+   "type": "concept",
+   "label": "typ = oauth-wag+jwt"
+  },
+  {
+   "id": "issuer_keys",
+   "type": "concept",
+   "label": "Issuer keys (JWKS)"
+  },
+  {
+   "id": "tenancy",
+   "type": "concept",
+   "label": "Multi-tenancy / tenant claim"
+  },
+  {
+   "id": "permissions",
+   "type": "concept",
+   "label": "Permission policy"
+  },
+  {
+   "id": "nickname",
+   "type": "concept",
+   "label": "nickname (display only)"
+  },
+  {
+   "id": "errors",
+   "type": "concept",
+   "label": "Error responses"
+  },
+  {
+   "id": "as_metadata",
+   "type": "concept",
+   "label": "AS metadata advertisement"
+  },
+  {
+   "id": "rfc7523",
+   "type": "spec",
+   "label": "RFC 7523"
+  },
+  {
+   "id": "rfc7521",
+   "type": "spec",
+   "label": "RFC 7521"
+  },
+  {
+   "id": "rfc8707",
+   "type": "spec",
+   "label": "RFC 8707 resource"
+  },
+  {
+   "id": "rfc8414",
+   "type": "spec",
+   "label": "RFC 8414"
+  },
+  {
+   "id": "rfc8725",
+   "type": "spec",
+   "label": "RFC 8725 JWT BCP"
+  },
+  {
+   "id": "rfc8693",
+   "type": "spec",
+   "label": "RFC 8693"
+  },
+  {
+   "id": "idjag",
+   "type": "spec",
+   "label": "ID-JAG"
+  },
+  {
+   "id": "rfc7591",
+   "type": "spec",
+   "label": "RFC 7591"
+  },
+  {
+   "id": "oi_pop",
+   "type": "open_issue",
+   "label": "Proof of possession"
+  },
+  {
+   "id": "oi_replay",
+   "type": "open_issue",
+   "label": "jti replay"
+  },
+  {
+   "id": "oi_ownership",
+   "type": "open_issue",
+   "label": "Agent ownership (#13)"
+  },
+  {
+   "id": "oi_client",
+   "type": "open_issue",
+   "label": "Agent as subject vs client (O4)"
+  },
+  {
+   "id": "dpop",
+   "type": "spec",
+   "label": "DPoP (RFC 9449)"
+  },
+  {
+   "id": "attest",
+   "type": "spec",
+   "label": "Attestation-based client auth"
+  },
+  {
+   "id": "cimd",
+   "type": "spec",
+   "label": "CIMD + private_key_jwt"
+  },
+  {
+   "id": "d3",
+   "type": "decision",
+   "label": "D3 RFC 7523 grant"
+  },
+  {
+   "id": "d4",
+   "type": "decision",
+   "label": "D4 client identity unspecified"
+  },
+  {
+   "id": "d8",
+   "type": "decision",
+   "label": "D8 multi-issuer scoping"
+  },
+  {
+   "id": "d11",
+   "type": "decision",
+   "label": "D11 OBO out of scope"
+  },
+  {
+   "id": "d16",
+   "type": "decision",
+   "label": "D16 explicit typing"
+  },
+  {
+   "id": "d17",
+   "type": "decision",
+   "label": "D17 grant-profile discovery"
+  },
+  {
+   "id": "obo",
+   "type": "concept",
+   "label": "On-behalf-of (out of scope)"
+  },
+  {
+   "id": "playground",
+   "type": "project",
+   "label": "WAG developer playground"
+  }
+ ],
+ "edges": [
+  {
+   "from": "platform",
+   "rel": "hosts",
+   "to": "agent"
+  },
+  {
+   "from": "platform",
+   "rel": "operates",
+   "to": "widp"
+  },
+  {
+   "from": "widp",
+   "rel": "issues",
+   "to": "wag"
+  },
+  {
+   "from": "wag",
+   "rel": "names",
+   "to": "agent_id"
+  },
+  {
+   "from": "agent_id",
+   "rel": "identifies",
+   "to": "agent"
+  },
+  {
+   "from": "agent",
+   "rel": "presents",
+   "to": "wag"
+  },
+  {
+   "from": "wag",
+   "rel": "presented_in",
+   "to": "token_request"
+  },
+  {
+   "from": "token_request",
+   "rel": "sent_to",
+   "to": "as"
+  },
+  {
+   "from": "as",
+   "rel": "issues",
+   "to": "access_token"
+  },
+  {
+   "from": "access_token",
+   "rel": "used_at",
+   "to": "rs"
+  },
+  {
+   "from": "as",
+   "rel": "holds",
+   "to": "widp_reg"
+  },
+  {
+   "from": "widp_reg",
+   "rel": "trusts",
+   "to": "widp"
+  },
+  {
+   "from": "widp_reg",
+   "rel": "records",
+   "to": "issuer_keys"
+  },
+  {
+   "from": "widp_reg",
+   "rel": "may_record",
+   "to": "tenancy"
+  },
+  {
+   "from": "widp_reg",
+   "rel": "defines",
+   "to": "permissions"
+  },
+  {
+   "from": "wag",
+   "rel": "has_claims",
+   "to": "jwt_claims"
+  },
+  {
+   "from": "jwt_claims",
+   "rel": "includes",
+   "to": "agent_id"
+  },
+  {
+   "from": "jwt_claims",
+   "rel": "includes",
+   "to": "nickname"
+  },
+  {
+   "from": "wag",
+   "rel": "typed_by",
+   "to": "typ"
+  },
+  {
+   "from": "typ",
+   "rel": "motivated_by",
+   "to": "rfc8725"
+  },
+  {
+   "from": "as",
+   "rel": "verifies_with",
+   "to": "issuer_keys"
+  },
+  {
+   "from": "as",
+   "rel": "keys_records_on",
+   "to": "agent_id"
+  },
+  {
+   "from": "permissions",
+   "rel": "must_not_use",
+   "to": "nickname"
+  },
+  {
+   "from": "as",
+   "rel": "returns",
+   "to": "errors"
+  },
+  {
+   "from": "as",
+   "rel": "publishes",
+   "to": "as_metadata"
+  },
+  {
+   "from": "as_metadata",
+   "rel": "uses",
+   "to": "idjag"
+  },
+  {
+   "from": "as_metadata",
+   "rel": "uses",
+   "to": "rfc8414"
+  },
+  {
+   "from": "token_request",
+   "rel": "based_on",
+   "to": "rfc7523"
+  },
+  {
+   "from": "rfc7523",
+   "rel": "based_on",
+   "to": "rfc7521"
+  },
+  {
+   "from": "token_request",
+   "rel": "carries",
+   "to": "rfc8707"
+  },
+  {
+   "from": "widp_reg",
+   "rel": "is_not",
+   "to": "rfc7591"
+  },
+  {
+   "from": "wag",
+   "rel": "may_issue_via",
+   "to": "rfc8693"
+  },
+  {
+   "from": "tenancy",
+   "rel": "recommends",
+   "to": "idjag"
+  },
+  {
+   "from": "wag",
+   "rel": "excludes",
+   "to": "obo"
+  },
+  {
+   "from": "obo",
+   "rel": "would_use",
+   "to": "rfc8693"
+  },
+  {
+   "from": "obo",
+   "rel": "would_use",
+   "to": "idjag"
+  },
+  {
+   "from": "d3",
+   "rel": "shapes",
+   "to": "token_request"
+  },
+  {
+   "from": "d4",
+   "rel": "shapes",
+   "to": "token_request"
+  },
+  {
+   "from": "d8",
+   "rel": "shapes",
+   "to": "widp_reg"
+  },
+  {
+   "from": "d11",
+   "rel": "scopes",
+   "to": "obo"
+  },
+  {
+   "from": "d16",
+   "rel": "shapes",
+   "to": "typ"
+  },
+  {
+   "from": "d17",
+   "rel": "shapes",
+   "to": "as_metadata"
+  },
+  {
+   "from": "oi_pop",
+   "rel": "affects",
+   "to": "wag"
+  },
+  {
+   "from": "oi_pop",
+   "rel": "candidate",
+   "to": "dpop"
+  },
+  {
+   "from": "oi_pop",
+   "rel": "candidate",
+   "to": "attest"
+  },
+  {
+   "from": "oi_pop",
+   "rel": "candidate",
+   "to": "cimd"
+  },
+  {
+   "from": "oi_replay",
+   "rel": "affects",
+   "to": "as"
+  },
+  {
+   "from": "oi_ownership",
+   "rel": "affects",
+   "to": "agent"
+  },
+  {
+   "from": "oi_client",
+   "rel": "affects",
+   "to": "token_request"
+  },
+  {
+   "from": "oi_client",
+   "rel": "tied_to",
+   "to": "d4"
+  },
+  {
+   "from": "playground",
+   "rel": "tests",
+   "to": "wag"
+  },
+  {
+   "from": "playground",
+   "rel": "simulates",
+   "to": "as"
+  },
+  {
+   "from": "playground",
+   "rel": "simulates",
+   "to": "widp"
+  }
+ ]
+}

@@ -1,0 +1,95 @@
+graph LR
+  wag["Workload Authorization Grant"]
+  platform["Platform"]
+  widp["Workload Identity Provider"]
+  agent["Agent (workload)"]
+  as["Authorization Server"]
+  rs["Resource Server"]
+  widp_reg["WIdP registration"]
+  agent_id["Agent Identifier (sub)"]
+  access_token["Access token"]
+  token_request["Token request (jwt-bearer)"]
+  jwt_claims["WAG JWT claims"]
+  typ["typ = oauth-wag+jwt"]
+  issuer_keys["Issuer keys (JWKS)"]
+  tenancy["Multi-tenancy / tenant claim"]
+  permissions["Permission policy"]
+  nickname["nickname (display only)"]
+  errors["Error responses"]
+  as_metadata["AS metadata advertisement"]
+  rfc7523["RFC 7523"]
+  rfc7521["RFC 7521"]
+  rfc8707["RFC 8707 resource"]
+  rfc8414["RFC 8414"]
+  rfc8725["RFC 8725 JWT BCP"]
+  rfc8693["RFC 8693"]
+  idjag["ID-JAG"]
+  rfc7591["RFC 7591"]
+  oi_pop["Proof of possession"]
+  oi_replay["jti replay"]
+  oi_ownership["Agent ownership (#13)"]
+  oi_client["Agent as subject vs client (O4)"]
+  dpop["DPoP (RFC 9449)"]
+  attest["Attestation-based client auth"]
+  cimd["CIMD + private_key_jwt"]
+  d3["D3 RFC 7523 grant"]
+  d4["D4 client identity unspecified"]
+  d8["D8 multi-issuer scoping"]
+  d11["D11 OBO out of scope"]
+  d16["D16 explicit typing"]
+  d17["D17 grant-profile discovery"]
+  obo["On-behalf-of (out of scope)"]
+  playground["WAG developer playground"]
+  platform -->|hosts| agent
+  platform -->|operates| widp
+  widp -->|issues| wag
+  wag -->|names| agent_id
+  agent_id -->|identifies| agent
+  agent -->|presents| wag
+  wag -->|presented_in| token_request
+  token_request -->|sent_to| as
+  as -->|issues| access_token
+  access_token -->|used_at| rs
+  as -->|holds| widp_reg
+  widp_reg -->|trusts| widp
+  widp_reg -->|records| issuer_keys
+  widp_reg -->|may_record| tenancy
+  widp_reg -->|defines| permissions
+  wag -->|has_claims| jwt_claims
+  jwt_claims -->|includes| agent_id
+  jwt_claims -->|includes| nickname
+  wag -->|typed_by| typ
+  typ -->|motivated_by| rfc8725
+  as -->|verifies_with| issuer_keys
+  as -->|keys_records_on| agent_id
+  permissions -->|must_not_use| nickname
+  as -->|returns| errors
+  as -->|publishes| as_metadata
+  as_metadata -->|uses| idjag
+  as_metadata -->|uses| rfc8414
+  token_request -->|based_on| rfc7523
+  rfc7523 -->|based_on| rfc7521
+  token_request -->|carries| rfc8707
+  widp_reg -->|is_not| rfc7591
+  wag -->|may_issue_via| rfc8693
+  tenancy -->|recommends| idjag
+  wag -->|excludes| obo
+  obo -->|would_use| rfc8693
+  obo -->|would_use| idjag
+  d3 -->|shapes| token_request
+  d4 -->|shapes| token_request
+  d8 -->|shapes| widp_reg
+  d11 -->|scopes| obo
+  d16 -->|shapes| typ
+  d17 -->|shapes| as_metadata
+  oi_pop -->|affects| wag
+  oi_pop -->|candidate| dpop
+  oi_pop -->|candidate| attest
+  oi_pop -->|candidate| cimd
+  oi_replay -->|affects| as
+  oi_ownership -->|affects| agent
+  oi_client -->|affects| token_request
+  oi_client -->|tied_to| d4
+  playground -->|tests| wag
+  playground -->|simulates| as
+  playground -->|simulates| widp

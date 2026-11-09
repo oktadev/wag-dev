@@ -1,0 +1,9 @@
+packages:
+  - app
+  - packages/*
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
+# magic-string 1.4.5 is ESM-only and breaks @tailwindcss/turbopack; revisit when Tailwind fixes it.
+overrides:
+  magic-string: 0.30.21

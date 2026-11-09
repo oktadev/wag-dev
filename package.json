@@ -1,0 +1,11 @@
+{
+  "name": "wag-dev",
+  "private": true,
+  "packageManager": "pnpm@10.18.0",
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "dev": "pnpm --filter @wag/app dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint"
+  }
+}
