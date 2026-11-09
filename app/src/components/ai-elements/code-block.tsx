@@ -389,25 +389,16 @@ export const CodeBlockContent = ({
     [code, language, rawTokens]
   );
 
-  // Async highlighting result (populated after shiki loads)
-  const [asyncTokens, setAsyncTokens] = useState<TokenizedCode | null>(null);
-  const asyncKeyRef = useRef({ code, language });
-
-  // Invalidate stale async tokens synchronously during render
-  if (
-    asyncKeyRef.current.code !== code ||
-    asyncKeyRef.current.language !== language
-  ) {
-    asyncKeyRef.current = { code, language };
-    setAsyncTokens(null);
-  }
+  // Async highlighting result, tagged with the input it was computed for so a stale result is ignored
+  // without reading or writing refs during render.
+  const [async, setAsync] = useState<{ code: string; language: string; tokens: TokenizedCode } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     highlightCode(code, language, (result) => {
       if (!cancelled) {
-        setAsyncTokens(result);
+        setAsync({ code, language, tokens: result });
       }
     });
 
@@ -416,6 +407,7 @@ export const CodeBlockContent = ({
     };
   }, [code, language]);
 
+  const asyncTokens = async && async.code === code && async.language === language ? async.tokens : null;
   const tokenized = asyncTokens ?? syncTokens;
 
   return (

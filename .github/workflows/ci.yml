@@ -1,0 +1,46 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Auth server tests (memory and Redis)
+        run: pnpm --filter @wag/auth-server test
+        env:
+          REDIS_TEST_URL: redis://127.0.0.1:6379
+      - name: App tests
+        run: pnpm --filter @wag/app test
+      - name: Typecheck and lint
+        run: pnpm --filter @wag/app typecheck && pnpm --filter @wag/app lint
+      - name: Build
+        run: pnpm --filter @wag/app build
+      - name: Audit (production dependencies)
+        run: pnpm audit --prod --audit-level high
+
+  images:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target auth-server -t wag-auth-server .
+      - run: docker build --target app -t wag-app .

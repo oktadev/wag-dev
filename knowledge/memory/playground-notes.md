@@ -29,3 +29,14 @@ Intent: let developers exercise the WAG spec end to end (WIdP issuing, AS verify
 - Workaround 2: `plan.tsx` `PlanTrigger` had a type error; props spread moved from `Button` to `CollapsibleTrigger`. Re-apply if the component is re-added.
 - `app/AGENTS.md` says this Next.js has breaking changes: read `node_modules/next/dist/docs/` before writing Next code.
 - Layout has `TooltipProvider` and forces the `dark` class.
+
+## Production hardening (2026-11-09)
+- Auth server split into `auth-server/src/{config,store,keys,adapter,rules,app,log}.js`. `rules.js` is a pure verifier that drives both the spec check trace and the tests. Infrastructure faults are never reported as spec rejections.
+- State lives in a store (`store.js`): Redis in production (tokens via the oidc-provider adapter, `jti` replay via atomic SET NX, modes, per-session log), memory for dev/tests. Production refuses to boot without Redis unless `ALLOW_MEMORY_STORE=1`.
+- Config is validated at boot and lists every problem (`config.js`). Secrets: `pnpm --filter @wag/auth-server keys`.
+- Internal endpoints (`/idp/sign`, `/config`, `/debug/*`) need `Authorization: Bearer $INTERNAL_TOKEN`. Only the Next.js server holds it. `/token` stays open (that is the protocol under test). Routes are an allow-list; unoffered provider routes 404.
+- Per-visitor isolation: the app sets an httpOnly `wag_sid` cookie; the AS keys modes, replay state and log by it (`x-wag-session`).
+- App: zod-validated route handlers, same-origin check, timeouts, safe error mapping, CSP and security headers. `output: standalone` only when `DOCKER_BUILD=1`.
+- Tests: `pnpm test` (auth-server node:test, 35 tests; +2 with `REDIS_TEST_URL`; app vitest, 27). Mutation-checked: breaking `typ`, replay, signature, token leakage and cookie validation each fail tests.
+- Removed 20 unused shadcn/AI Elements files; only `ai-elements/code-block` remains.
+- Known gaps: CSP still allows `unsafe-inline` scripts (needs nonces); the Redis `StoreAdapter` implements what the grant path uses, not every oidc-provider model operation; no rate limit on the app's own routes (the AS limits per IP); per-instance mock WIdP key must be shared via env across instances.

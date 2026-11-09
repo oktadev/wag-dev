@@ -2,5 +2,9 @@ node_modules
 **/node_modules
 **/.next
 .git
+.vercel
 knowledge
+**/test
+**/*.test.*
 *.md
+.env*
