@@ -301,9 +301,18 @@ export function Playground() {
       )}
 
       <Card className="border-primary/30 bg-primary/5">
-        <CardContent className="space-y-1 pt-4 text-sm">
-          <p className="font-mono"><b>The scenario.</b> You are the <b>Platform</b>. You host an Agent called <code>agent/7f3d9as3</code>. A ticket tracker&apos;s authorization server trusts your Workload Identity Provider, but has never heard of this Agent, and nobody registered it. Can the Agent get a token?</p>
-          <p className="text-muted-foreground">Pick a scenario, or edit the grant yourself.<span className="hidden sm:inline"> <kbd className="rounded border px-1">⌘</kbd>+<kbd className="rounded border px-1">Enter</kbd> runs the next step.</span></p>
+        <CardContent className="space-y-3 pt-4 text-sm">
+          <p className="font-mono">
+            <b>The setup.</b> You run <b>Acme&apos;s agent platform</b>. Maya on the databases team just created an agent, <code>agent/7f3d9as3</code> (&ldquo;Database Migration helper&rdquo;), to triage tickets. Your identity provider signs a grant that names it.
+          </p>
+          <p className="font-mono">
+            <b>The catch.</b> The ticket tracker&apos;s auth server has never heard of this agent, and nobody registered it there. The only thing it knows is that it trusts your identity provider. <b>Will it hand the agent a token?</b>
+          </p>
+          <div className="rounded-md border bg-background/60 p-3">
+            <p className="font-medium font-mono text-xs uppercase tracking-wide">Watching: {scenario.title}</p>
+            <p className="mt-1 text-muted-foreground">{scenario.why}</p>
+          </div>
+          <p className="text-muted-foreground text-xs">Pick a scenario, or edit the grant yourself.<span className="hidden sm:inline"> <kbd className="rounded border px-1">⌘</kbd>+<kbd className="rounded border px-1">Enter</kbd> runs the next step.</span></p>
         </CardContent>
       </Card>
 
