@@ -1,6 +1,6 @@
 packages:
   - app
-  - packages/*
+  - auth-server
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver

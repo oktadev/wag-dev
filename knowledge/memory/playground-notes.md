@@ -21,7 +21,7 @@ Intent: let developers exercise the WAG spec end to end (WIdP issuing, AS verify
 - Whether it should also be usable as a conformance harness against a real AS.
 
 ## Build setup (done 2026-11-09)
-- Monorepo (pnpm workspace: `app`, `packages/*`). UI app is `app` (`@wag/app`): Next.js 16.4.5, React 19.3, Tailwind 4.3, shadcn init, pnpm. `.nvmrc` pins Node 22.23 (the shell default is 22.1). The build failure I first blamed on Node 22.1 was actually Workaround 1; I did not test whether 22.1 works with it.
+- Monorepo (pnpm workspace: `app`, `auth-server`). UI app is `app` (`@wag/app`): Next.js 16.4.5, React 19.3, Tailwind 4.3, shadcn init, pnpm. `.nvmrc` pins Node 22.23 (the shell default is 22.1). The build failure I first blamed on Node 22.1 was actually Workaround 1; I did not test whether 22.1 works with it.
 - UI kit: **AI Elements (Vercel)**, installed with `pnpm dlx shadcn@latest add -y @ai-elements/<name>`. The `ai-elements` CLI mis-parses `-y` as a component name, so avoid it.
   Installed: conversation, message, tool, reasoning, plan, task, confirmation, terminal, code-block, schema-display, stack-trace, test-results, chain-of-thought.
 - AI Elements is deprecated end of Nov 2026 (moving into shadcn/ui). Components are copied into `app/src/components/ai-elements/`, so we own them.

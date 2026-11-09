@@ -1,0 +1,13 @@
+{
+  "name": "@wag/auth-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
+  "dependencies": {
+    "jose": "6.2.16",
+    "oidc-provider": "9.13.3"
+  }
+}

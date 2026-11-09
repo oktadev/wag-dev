@@ -1,5 +1,24 @@
 services:
+  auth-server:
+    build:
+      context: .
+      target: auth-server
+    environment:
+      ISSUER: http://auth-server:4100   # the `aud` the mock WIdP signs; must match what the app and AS both use
+    ports:
+      - "4100:4100"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4100/health"]
+      interval: 3s
+      retries: 10
   app:
-    build: .
+    build:
+      context: .
+      target: run
+    environment:
+      AS_URL: http://auth-server:4100
+    depends_on:
+      auth-server:
+        condition: service_healthy
     ports:
       - "3000:3000"
