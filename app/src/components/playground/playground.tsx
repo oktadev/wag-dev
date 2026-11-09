@@ -250,7 +250,10 @@ export function Playground() {
     <div className="mx-auto w-full max-w-7xl space-y-6 px-3 py-6 sm:px-4 sm:py-8">
       <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
-          <h1 className="font-mono font-semibold text-2xl tracking-tight sm:text-3xl">Run a Workload Authorization Grant</h1>
+          <h1 className="font-mono font-semibold text-2xl tracking-tight sm:text-3xl">
+            Run a Workload Authorization{" "}
+            <span className="whitespace-nowrap">Grant<sup className="ml-1 align-super font-medium text-[0.4em] text-muted-foreground uppercase tracking-widest" title="Early preview: behaviour may change">Beta</sup></span>
+          </h1>
           <p className="max-w-2xl text-muted-foreground text-sm">Sign a grant as the Workload Identity Provider, break it in any way you like, and watch a real authorization server check it rule by rule.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
