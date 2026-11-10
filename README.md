@@ -1,6 +1,6 @@
 # WAG Developer Playground
 
-A pnpm monorepo for trying the Workload Authorization Grant (WAG) draft. It includes a Next.js playground app and a WAG authorization server with a mock Workload Identity Provider.
+A pnpm monorepo for trying the [Workload Authorization Grant (WAG)](https://www.ietf.org/archive/id/draft-carleton-workload-authz-grant-02.txt) draft. It includes a Next.js playground app and a WAG authorization server with a mock Workload Identity Provider.
 
 ## Run locally
 
